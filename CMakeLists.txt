@@ -20,12 +20,6 @@ target_include_directories(airports PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_link_libraries(airports PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 
-add_custom_command(TARGET airports POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/res/airports.csv
-        $<TARGET_FILE_DIR:airports>/airports.csv
-)
-
 # ---------------------------------------------------------------------------
 #  Тесты (Google Test)
 # ---------------------------------------------------------------------------
@@ -47,12 +41,6 @@ add_executable(airports_tests
 target_include_directories(airports_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_link_libraries(airports_tests PRIVATE Qt6::Core gtest_main)
-
-add_custom_command(TARGET airports_tests POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/res/airports.csv
-        $<TARGET_FILE_DIR:airports_tests>/airports.csv
-)
 
 include(GoogleTest)
 gtest_discover_tests(airports_tests

@@ -13,14 +13,18 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QHeaderView>
+#include <QCoreApplication>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setupUI();
 
-    const QString defaultFile = QStringLiteral("airports.csv");
+    // Ищем airports.csv в папке res/ относительно расположения exe
+    const QString appDir  = QCoreApplication::applicationDirPath();
+    const QString resFile = QDir::cleanPath(appDir + "/../res/airports.csv");
 
-    if (m_manager.loadFromFile(defaultFile))
+    if (m_manager.loadFromFile(resFile))
     {
         populateTable();
         updateAirportComboBoxes();
@@ -103,7 +107,7 @@ void MainWindow::setupUI()
     mainLayout->addWidget(new QLabel(QStringLiteral("Результаты:"), this));
     mainLayout->addWidget(m_resultEdit);
 
-    m_statusLabel = new QLabel(QStringLiteral("Загрузите файл airports.csv"), this);
+    m_statusLabel = new QLabel(QStringLiteral("Готово к работе"), this);
     mainLayout->addWidget(m_statusLabel);
 
     connect(m_loadFileBtn,    &QPushButton::clicked,

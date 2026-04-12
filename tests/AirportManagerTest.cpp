@@ -118,7 +118,9 @@ TEST(LoadFromFile, commaSeparated)
 TEST(FindByName, returnsCorrectIndex)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 0) {
         const auto &first = mgr.airports()[0];
@@ -129,7 +131,9 @@ TEST(FindByName, returnsCorrectIndex)
 TEST(FindByName, returnsMinusOneForMissing)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
     EXPECT_EQ(mgr.findByName("ZZZZ"), -1);
 }
 
@@ -137,7 +141,9 @@ TEST(FindByName, returnsMinusOneForMissing)
 TEST(DistanceBetween, sameAirportIsZero)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 0) {
         double d = mgr.distanceBetween(0, 0);
@@ -148,7 +154,9 @@ TEST(DistanceBetween, sameAirportIsZero)
 TEST(DistanceBetween, symmetric)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() >= 2) {
         double d1 = mgr.distanceBetween(0, 1);
@@ -182,7 +190,9 @@ TEST(DistanceBetween, knownValue)
 TEST(DistanceBetween, returnsNegativeForInvalidIndices)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 0) {
         EXPECT_LT(mgr.distanceBetween(-1, 0), 0);
@@ -195,7 +205,9 @@ TEST(DistanceBetween, returnsNegativeForInvalidIndices)
 TEST(FindNearby, zeroRadiusReturnsEmpty)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 1) {
         auto res = mgr.findNearby(0, 0.0);
@@ -206,7 +218,9 @@ TEST(FindNearby, zeroRadiusReturnsEmpty)
 TEST(FindNearby, largeRadiusFindsAll)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 1) {
         auto res = mgr.findNearby(0, 50000.0);
@@ -217,7 +231,9 @@ TEST(FindNearby, largeRadiusFindsAll)
 TEST(FindNearby, returnsEmptyForInvalidIndex)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     EXPECT_TRUE(mgr.findNearby(-1, 1000).isEmpty());
     EXPECT_TRUE(mgr.findNearby(mgr.count(), 1000).isEmpty());
@@ -226,7 +242,9 @@ TEST(FindNearby, returnsEmptyForInvalidIndex)
 TEST(FindNearby, sortedByDistance)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 2) {
         auto res = mgr.findNearby(0, 20000.0);
@@ -239,7 +257,9 @@ TEST(FindNearby, sortedByDistance)
 TEST(FindShortestPath, sameStartAndEnd)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() > 0) {
         auto path = mgr.findShortestPath(0, 0, 1000.0);
@@ -252,7 +272,9 @@ TEST(FindShortestPath, sameStartAndEnd)
 TEST(FindShortestPath, directFlightPossible)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() >= 2) {
         double d = mgr.distanceBetween(0, 1);
@@ -266,7 +288,9 @@ TEST(FindShortestPath, directFlightPossible)
 TEST(FindShortestPath, noPathWhenRangeTooSmall)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() >= 2) {
         auto path = mgr.findShortestPath(0, 1, 0.1);
@@ -277,7 +301,9 @@ TEST(FindShortestPath, noPathWhenRangeTooSmall)
 TEST(FindShortestPath, returnsEmptyForInvalidIndices)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     EXPECT_TRUE(mgr.findShortestPath(-1, 0, 1000).isEmpty());
     EXPECT_TRUE(mgr.findShortestPath(0, -1, 1000).isEmpty());
@@ -288,7 +314,9 @@ TEST(FindShortestPath, returnsEmptyForInvalidIndices)
 TEST(FindShortestPath, pathReturnsValidSequence)
 {
     AirportManager mgr;
-    mgr.loadFromFile("airports.csv");
+    const QString csv = findAirportsCsv();
+    if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
+    mgr.loadFromFile(csv);
 
     if (mgr.count() >= 3) {
         auto path = mgr.findShortestPath(0, 2, 50000.0);

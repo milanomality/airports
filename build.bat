@@ -51,8 +51,6 @@ if exist "%QT_DIR%\bin\windeployqt.exe" (
     )
 )
 
-copy /y "res\airports.csv" "build\" >nul
-
 echo [4/4] Running tests...
 cd /d "%~dp0build"
 ctest --output-on-failure
