@@ -13,7 +13,8 @@ static QString createTempCsv(const QString &content)
 {
     const QString path = QDir::tempPath() + "/test_airports_" + QString::number(QDateTime::currentMSecsSinceEpoch()) + ".csv";
     QFile f(path);
-    f.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
+        return QString();
     QTextStream out(&f);
     out << content;
     f.close();
@@ -124,17 +125,19 @@ TEST(FindByName, returnsCorrectIndex)
 
     if (mgr.count() > 0) {
         const auto &first = mgr.airports()[0];
-        EXPECT_EQ(mgr.findByName(first.name), 0);
+        auto result = mgr.findByName(first.name);
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(result.value(), 0);
     }
 }
 
-TEST(FindByName, returnsMinusOneForMissing)
+TEST(FindByName, returnsNulloptForMissing)
 {
     AirportManager mgr;
     const QString csv = findAirportsCsv();
     if (csv.isEmpty()) { GTEST_SKIP() << "airports.csv not found"; }
     mgr.loadFromFile(csv);
-    EXPECT_EQ(mgr.findByName("ZZZZ"), -1);
+    EXPECT_FALSE(mgr.findByName("ZZZZ").has_value());
 }
 
 

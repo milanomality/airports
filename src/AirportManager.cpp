@@ -2,7 +2,6 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QSet>
 #include <QDebug>
 
 #include <algorithm>
@@ -21,6 +20,7 @@ bool AirportManager::loadFromFile(const QString &filename)
     QVector<Airport> buffer;
 
     QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
     in.readLine();
 
     while (!in.atEnd())
@@ -50,6 +50,13 @@ bool AirportManager::loadFromFile(const QString &filename)
             continue;
         }
 
+        if (airport.lat < MIN_LATITUDE || airport.lat > MAX_LATITUDE ||
+            airport.lon < MIN_LONGITUDE || airport.lon > MAX_LONGITUDE)
+        {
+            qWarning() << "[AirportManager] invalid coordinates:" << line;
+            continue;
+        }
+
         buffer.push_back(std::move(airport));
     }
 
@@ -62,7 +69,7 @@ bool AirportManager::loadFromFile(const QString &filename)
     return true;
 }
 
-int AirportManager::findByName(const QString &name) const
+std::optional<int> AirportManager::findByName(const QString &name) const
 {
     for (int i = 0; i < m_airports.size(); ++i)
     {
@@ -72,7 +79,7 @@ int AirportManager::findByName(const QString &name) const
         }
     }
 
-    return -1;
+    return std::nullopt;
 }
 
 double AirportManager::distanceBetween(int idx1, int idx2) const
@@ -86,22 +93,19 @@ double AirportManager::distanceBetween(int idx1, int idx2) const
     const auto &a = m_airports[idx1];
     const auto &b = m_airports[idx2];
 
-    constexpr double R     = 6371.0;
-    constexpr double toRad = M_PI / 180.0;
-
-    const double dLat = (b.lat - a.lat) * toRad;
-    const double dLon = (b.lon - a.lon) * toRad;
+    const double dLat = (b.lat - a.lat) * DEG_TO_RAD;
+    const double dLon = (b.lon - a.lon) * DEG_TO_RAD;
 
     const double sinDLat = std::sin(dLat / 2);
     const double sinDLon = std::sin(dLon / 2);
 
     double h = sinDLat * sinDLat +
-               std::cos(a.lat * toRad) * std::cos(b.lat * toRad) *
+               std::cos(a.lat * DEG_TO_RAD) * std::cos(b.lat * DEG_TO_RAD) *
                sinDLon * sinDLon;
 
     h = std::clamp(h, 0.0, 1.0);
 
-    return R * 2.0 * std::atan2(std::sqrt(h), std::sqrt(1.0 - h));
+    return EARTH_RADIUS_KM * 2.0 * std::atan2(std::sqrt(h), std::sqrt(1.0 - h));
 }
 
 QVector<NearbyResult> AirportManager::findNearby(int airportIndex,
@@ -109,10 +113,11 @@ QVector<NearbyResult> AirportManager::findNearby(int airportIndex,
 {
     QVector<NearbyResult> result;
 
-    if (airportIndex < 0 || airportIndex >= m_airports.size())
+    if (airportIndex < 0 || airportIndex >= m_airports.size() ||
+        radiusKm < 0.0)
+    {
         return result;
-
-    result.reserve(m_airports.size());
+    }
 
     for (int i = 0; i < m_airports.size(); ++i)
     {
@@ -136,28 +141,29 @@ QVector<int> AirportManager::findShortestPath(int fromIndex, int toIndex,
                                                double maxRangeKm) const
 {
     if (fromIndex < 0 || fromIndex >= m_airports.size() ||
-        toIndex   < 0 || toIndex   >= m_airports.size())
+        toIndex   < 0 || toIndex   >= m_airports.size() ||
+        maxRangeKm < 0.0)
     {
         return {};
     }
 
-    const int n       = m_airports.size();
+    const int n = m_airports.size();
     constexpr double INF = std::numeric_limits<double>::infinity();
 
     QVector<double> dist(n, INF);
     QVector<int>    prev(n, -1);
-    QSet<int>       visited;
+    QVector<bool>   visited(n, false);
 
     dist[fromIndex] = 0.0;
 
-    while (visited.size() < static_cast<size_t>(n))
+    while (true)
     {
         int    u    = -1;
         double minD = INF;
 
         for (int i = 0; i < n; ++i)
         {
-            if (!visited.contains(i) && dist[i] < minD)
+            if (!visited[i] && dist[i] < minD)
             {
                 minD = dist[i];
                 u    = i;
@@ -169,11 +175,11 @@ QVector<int> AirportManager::findShortestPath(int fromIndex, int toIndex,
         if (u == toIndex)
             break;
 
-        visited.insert(u);
+        visited[u] = true;
 
         for (int v = 0; v < n; ++v)
         {
-            if (visited.contains(v))
+            if (visited[v])
                 continue;
 
             const double edge = distanceBetween(u, v);
